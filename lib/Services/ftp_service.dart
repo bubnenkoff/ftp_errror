@@ -32,7 +32,7 @@ getListOfArchives() async {
   // await checkIfConnectedOrReconnectToFTP();
   try {
     await ftpConnect.changeDirectory(ftpCredential.rootFtpDir);
-  } on FTPException catch(e) {
+  } on Exception catch(e) {
     
     await ftpReconnect();
 
@@ -134,7 +134,7 @@ saveArchivesToDB() async {
   List<FTPItemModel> ftpArchives;
   try {
     ftpArchives = await getListOfArchives();
-  } on FTPException catch(e) {
+  } on Exception catch(e) {
     ftpArchives = await getListOfArchives();
   }
 
@@ -238,7 +238,7 @@ Future<FTPItemModel?> getSingleNotUnpackedArchiveFromDB([String? region]) async 
 }
 
 
-downloadArchive([isRestartedByException = false]) async {
+Future downloadArchive() async {
   print("downloadArchive");
   serviceStatus['currentTask'] = 'downloadArchive';
   if(connection.isClosed) {  // databse connection
@@ -283,10 +283,10 @@ downloadArchive([isRestartedByException = false]) async {
           await ftpConnect.downloadFileWithRetry(ftpArchiveFullPath, File(localArchiveFullPath), pRetryCount: 2);
           print("bb11");
 
-        } on FTPException catch (e) { // почему-то иногда выпадает и пробуем повторно чтобы файл разобрать
+        } on Exception catch (e) { // почему-то иногда выпадает и пробуем повторно чтобы файл разобрать
           print(e);  
           print("${ftpArchiveFullPath}");
-          print('\nFTP Exception! we will call downloadArchive again: ${e.message} Second Attempt to download file'); 
+          print('\nFTP Exception! we will call downloadArchive again: ${e} Second Attempt to download file'); 
           await ftpReconnect();
           print("11___________________11");
           await downloadArchive();
@@ -819,7 +819,7 @@ startNewJob(Map<String, dynamic> ftpJob) async {
         await ftpConnect.connect();
 
         await choiceOfProcessingAction();
-    } on FTPException catch(e) {
+    } on Exception catch(e) {
       await ftpConnect.disconnect();
       print('startNewJob exception');
       print(e);
