@@ -280,7 +280,7 @@ Future downloadArchive() async {
       if(!File(localArchiveFullPath).existsSync()) { 
         try {
           print("aa11");
-          await ftpConnect.downloadFileWithRetry(ftpArchiveFullPath, File(localArchiveFullPath), pRetryCount: 2);
+          await ftpConnect.downloadFile(ftpArchiveFullPath, File(localArchiveFullPath));
           print("bb11");
 
         } on Exception catch (e) { // почему-то иногда выпадает и пробуем повторно чтобы файл разобрать
@@ -609,15 +609,32 @@ Future<int> getCountOfUnprocessedArchives(String sectionName) async {
   String sectionsWithSingleQuotes = "'$sectionName'";
 
   String sql = """
-     SELECT COUNT(*) FROM "ftp_files" WHERE "isUnpacked" is NULL AND section_name IN ($sectionsWithSingleQuotes) AND fz = '${serviceStatus['fz']}'
+     SELECT COUNT(*) FROM ftp_files WHERE "isUnpacked" is NULL AND section_name IN ($sectionsWithSingleQuotes) AND fz = '${serviceStatus['fz']}'
     """;
   print(sql);
-  List<List<dynamic>> result = await connection.query(sql).timeout(Duration(seconds: 42));
-  int count = result[0][0];
-  print('Unprocessed Archives Count: $count');
-  serviceStatus['currentTask'] = '';
-  serviceStatus['unprocessedArchivesCount'] = count;
-  return count;
+  try {
+    List<List<dynamic>> result = await connection.query(sql).timeout(Duration(seconds: 42));
+    int count = result[0][0];
+
+    print('Unprocessed Archives Count: $count');
+    serviceStatus['currentTask'] = '';
+    serviceStatus['unprocessedArchivesCount'] = count;
+    return count;
+
+  } catch(e) {
+    print("EXCEPTION SELECT COUNT(*) FROM ftp_files: $e");
+
+      if(connection.isClosed) { 
+        connection = getConnection();
+        await connection.open();
+        print("reconnected123");
+      }  
+      await getCountOfUnprocessedArchives(sectionName);
+
+      throw Exception("Cant SELECT COUNT(*) ");
+  }
+  
+
 }
 
 

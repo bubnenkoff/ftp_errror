@@ -20,3 +20,5 @@ dependencies:
 dev_dependencies:
   lints: ^1.0.0
   test: ^1.16.0
+  all_lint_rules_community:
+    git: https://github.com/gaetschwartz/all_lint_rules  
