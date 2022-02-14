@@ -6,7 +6,7 @@ data = {
 	"fz": ["fz44"],
 	"sections": ["notifications", "protocols"],
 	"start_year": 2016,
-	"atLeastNotProcessedXML": 5200,
+	"atLeastNotProcessedXML": 150000,
 	"onlyLastMonth" : False
 }
 
